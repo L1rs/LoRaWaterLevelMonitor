@@ -1,0 +1,23 @@
+# PlatformIO
+.pio
+
+# Visual Studio Code
+.vscode/.browse.c_cpp.db*
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+.vscode/ipch
+
+# Konfigurationsdateien mit Secrets (nur .example Versionen werden versioniert)
+sensor-board/include/config.h
+gateway-board/include/config.h
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Backup und temporäre Dateien
+*.bak
+*.tmp
+*.log

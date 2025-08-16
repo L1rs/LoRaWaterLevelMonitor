@@ -1,0 +1,67 @@
+#pragma once
+
+// Zentrale Konfiguration - Sensor-Board (im Schacht)
+// Alle Werte sind auf Deutsch dokumentiert.
+// 
+// ANLEITUNG: Kopiere diese Datei zu 'config.h' und passe die Werte an!
+// Die Datei 'config.h' wird nicht versioniert (.gitignore)
+
+// --------- LoRa ---------
+// EU-Frequenzband 868 MHz
+static const long LORA_FREQUENCY_HZ = 868E6; // 868 MHz
+
+// Optional: LoRa Feinjustierung (Standardwerte sind meist ok)
+// Bei Bedarf aktivieren und anpassen
+// #define LORA_TUNE
+// static const int LORA_SF = 7;     // Spreading Factor (7..12)
+// static const long LORA_BW = 125E3; // Bandbreite in Hz
+// static const int LORA_CR = 5;     // Coding Rate (5..8)
+
+// --------- Messung ---------
+// ADC-Pin des analogen Drucksensors: Für Heltec WiFi LoRa 32 (V2) eignet sich GPIO36 (ADC1_CH0)
+static const int SENSOR_ADC_PIN = 36; // Anpassen, falls andere Verdrahtung
+
+// Messintervall in Millisekunden (zurück auf 60s)
+static const unsigned long MEASURE_INTERVAL_MS = 60UL * 1000UL;
+
+// Umrechnung: 0V = 0 cm, 3,3V = 500 cm
+// Für die neue mV-basierte Messung nutzen wir folgende Parameter:
+// SENSOR_VREF_MV: Spannung (in mV), die der Maximalhöhe entspricht (Default: 3300 mV)
+// SENSOR_OFFSET_MV: Offset (in mV), der bei 0 cm anliegt (Default: 0 mV)
+static const uint32_t SENSOR_VREF_MV = 3300; // 3.3V entspricht 500 cm
+static const uint32_t SENSOR_OFFSET_MV = 0;  // Nullpunkt-Offset in mV
+// Gain-Korrektur: kalibrierter mV-Wert = gemessener mV-Wert * SENSOR_MV_SCALE
+// Beispiel: real 121.4 mV, gemessen 142 mV -> 121.4/142 ≈ 0.855
+// Anpassung: real 123.7 mV, mv_raw 142 -> 123.7/142 ≈ 0.8718
+static const float SENSOR_MV_SCALE = 0.872f;
+static const float SENSOR_MAX_VOLT = 3.3f;   // historische Größe, wird nicht mehr genutzt
+static const float SENSOR_MAX_CM = 500.0f;
+
+// Plausibilitätsgrenzen in cm
+static const float DEPTH_MIN_CM = 0.0f;
+static const float DEPTH_MAX_CM = 500.0f;
+
+// OLED Verhalten
+static const bool OLED_ENABLED = false;
+
+// OTA über WLAN Access Point (Arduino OTA)
+static const bool OTA_AP_ENABLED = true;                       // OTA-AP aktivieren
+static const char *OTA_AP_SSID_PREFIX = "drainage-sensor-";   // SSID-Präfix, MAC wird angehängt
+static const char *OTA_AP_PASSWORD = "HIER_DEIN_OTA_PASSWORT";  // WPA2-Passwort (mind. 8 Zeichen) - ÄNDERN!
+
+// Sicherheit: Verschlüsselung/Authentisierung auf Anwendungsebene
+// AES-128 im CTR-Modus + HMAC-SHA256 (gekürzt) über Header+Ciphertext
+// WICHTIG: Ändere diese Schlüssel für deine Installation!
+static const bool ENCRYPTION_ENABLED = true;
+static const uint8_t SENSOR_ID = 0x01; // eindeutige ID dieses Sensors
+// WARNUNG: Diese Schlüssel sind nur Beispiele - generiere eigene für Produktion!
+static const uint8_t AES_KEY[16]  = { 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 }; // ÄNDERN!
+static const uint8_t HMAC_KEY[16] = { 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 }; // ÄNDERN!
+
+// Serielle Schnittstelle
+static const unsigned long SERIAL_BAUD = 115200;
+
+// Paketformat
+// Wir senden eine einfache, leicht zu parsende Zeichenkette:
+// "WATER_CM:<wert>;STATUS:<OK|ERR>"
+// Optional kann eine Mess-ID mitgesendet werden.

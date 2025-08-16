@@ -1,0 +1,63 @@
+#pragma once
+
+// Zentrale Konfiguration - Gateway-Board (im Haus)
+// Alle Werte sind auf Deutsch dokumentiert.
+//
+// ANLEITUNG: Kopiere diese Datei zu 'config.h' und passe die Werte an!
+// Die Datei 'config.h' wird nicht versioniert (.gitignore)
+
+// --------- LoRa ---------
+static const long LORA_FREQUENCY_HZ = 868E6; // 868 MHz
+
+// --------- WLAN ---------
+// WICHTIG: Trage hier deine WLAN-Zugangsdaten ein!
+static const char *WIFI_SSID = "DEIN_WLAN_NAME";
+static const char *WIFI_PASSWORD = "DEIN_WLAN_PASSWORT";
+
+// --------- MQTT ---------
+// WICHTIG: Trage hier deine MQTT-Broker-Zugangsdaten ein!
+static const char *MQTT_HOST = "192.168.1.100"; // IP oder Hostname des MQTT-Brokers
+static const uint16_t MQTT_PORT = 1883;
+static const char *MQTT_USER = "dein_mqtt_benutzer";
+static const char *MQTT_PASS = "dein_mqtt_passwort";
+
+// MQTT Topics gemäß Projektvorgabe
+static const char *TOPIC_WATERLEVEL = "lora/drainage/waterlevel_cm";
+static const char *TOPIC_RSSI = "lora/drainage/rssi"; // zusätzlicher RSSI-Wert des letzten LoRa-Pakets
+
+// MQTT Client-ID Prefix (wird um Zufallszahl erweitert)
+static const char *MQTT_CLIENT_ID_PREFIX = "drainage-gateway-";
+
+// Optional: Home Assistant MQTT Discovery
+// Wenn aktiviert, wird bei MQTT-Verbindung eine Discovery-Config unterhalb
+// des Präfixes veröffentlicht, sodass die Entität automatisch erscheint.
+static const bool ENABLE_HA_DISCOVERY = true;
+static const char *HA_DISCOVERY_PREFIX = "homeassistant"; // Standard in HA
+static const char *HA_DEVICE_NAME = "Drainage Gateway";
+static const char *HA_NODE_ID = "drainage_gateway"; // für eindeutige IDs
+
+// Serielle Schnittstelle
+static const unsigned long SERIAL_BAUD = 115200;
+
+// OLED Verhalten
+static const bool OLED_ENABLED = false;
+
+// OTA (Arduino OTA über WLAN)
+static const bool OTA_ENABLED = true;                   // OTA-Updates erlauben
+static const char *OTA_HOSTNAME_PREFIX = "drainage-gw-"; // Hostname-Präfix (MAC wird angehängt)
+static const char *OTA_PASSWORD = "DEIN_OTA_PASSWORT";   // OTA-Passwort - ÄNDERN!
+
+// Sicherheit: Verschlüsselung/Authentisierung auf Anwendungsebene (AES-CTR + HMAC)
+// WICHTIG: Diese Schlüssel müssen mit dem Sensor-Board übereinstimmen!
+static const bool ENCRYPTION_ENABLED = true; // wenn true: Gateway erwartet nur verschlüsselte Pakete
+// Erlaubte Sensor-IDs (Whitelist)
+static const uint8_t ALLOWED_SENSOR_IDS[] = { 0x01 };
+static const size_t ALLOWED_SENSOR_IDS_COUNT = sizeof(ALLOWED_SENSOR_IDS)/sizeof(ALLOWED_SENSOR_IDS[0]);
+// Gemeinsame Schlüssel (müssen identisch mit Sensor-Board sein)
+// WARNUNG: Diese Schlüssel sind nur Beispiele - generiere eigene für Produktion!
+static const uint8_t AES_KEY[16]  = { 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 }; // ÄNDERN!
+static const uint8_t HMAC_KEY[16] = { 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 }; // ÄNDERN!
+
+// Reconnect-Intervalle
+static const unsigned long WIFI_RECONNECT_INTERVAL_MS = 10UL * 1000UL;
+static const unsigned long MQTT_RECONNECT_INTERVAL_MS = 10UL * 1000UL;
