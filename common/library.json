@@ -1,0 +1,12 @@
+{
+  "name": "lwlm-common",
+  "version": "1.0.0",
+  "keywords": ["crypto", "util", "lora", "common"],
+  "description": "Gemeinsame Hilfsfunktionen (Krypto, Utils) für LoRaWaterLevelMonitor.",
+  "frameworks": ["arduino"],
+  "platforms": ["espressif32"],
+  "build": {
+    "includeDir": "include",
+    "srcDir": "src"
+  }
+}

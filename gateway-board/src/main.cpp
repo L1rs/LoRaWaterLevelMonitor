@@ -11,8 +11,8 @@
 #include <WebServer.h>
 #include <memory>
 #include <cstring>
-#include <mbedtls/aes.h>
-#include <mbedtls/md.h>
+// Krypto-Helfer aus common
+#include "crypto.h"
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -75,14 +75,14 @@ static Measurement g_hist[MAX_MEAS];
 static int g_histCount = 0;
 static unsigned long g_lastLoRaMs = 0;
 static int g_lastRssi = 0;
-static float g_lastSnr = 0.0f;
+static float g_lastSnr = 0.0f; // TODO: optional veröffentlichen oder entfernen
 static bool g_oledOk = false;
 static bool g_oledEnabled = OLED_ENABLED; // zur Laufzeit schaltbar
 
 // Heltec PRG/KEY Button (GPIO0, intern Pullup)
 static const int BUTTON_PIN = 0;
 static bool g_btnStable = true; // HIGH = nicht gedrückt
-static bool g_btnPrevStable = true;
+// Entfernt: g_btnPrevStable ungenutzt
 static unsigned long g_btnLastChangeMs = 0;
 static unsigned long g_btnPressStartMs = 0;
 
@@ -131,33 +131,18 @@ static void rememberNonce(uint8_t sid, uint64_t nonce)
   g_replay[0].sensorId = sid; g_replay[0].nonces[0] = nonce; g_replay[0].count = 1;
 }
 
-static bool hmac_trunc(const uint8_t *key, size_t keyLen,
-                       const uint8_t *msg, size_t msgLen,
-                       uint8_t *out, size_t outLen)
+// Gemeinsame Krypto-Helfer aus common (ersetzt lokale Implementierung)
+static inline bool hmac_trunc(const uint8_t *key, size_t keyLen,
+                              const uint8_t *msg, size_t msgLen,
+                              uint8_t *out, size_t outLen)
 {
-  const mbedtls_md_info_t *md = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
-  if (!md) return false;
-  mbedtls_md_context_t ctx; mbedtls_md_init(&ctx);
-  if (mbedtls_md_setup(&ctx, md, 1) != 0) { mbedtls_md_free(&ctx); return false; }
-  if (mbedtls_md_hmac_starts(&ctx, key, keyLen) != 0) { mbedtls_md_free(&ctx); return false; }
-  if (mbedtls_md_hmac_update(&ctx, msg, msgLen) != 0) { mbedtls_md_free(&ctx); return false; }
-  uint8_t full[32];
-  if (mbedtls_md_hmac_finish(&ctx, full) != 0) { mbedtls_md_free(&ctx); return false; }
-  mbedtls_md_free(&ctx);
-  memcpy(out, full, outLen);
-  return true;
+  return hmacSha256Trunc(key, keyLen, msg, msgLen, out, outLen);
 }
 
-static bool aes_ctr_crypt(const uint8_t *key, const uint8_t *nonce8,
-                          uint8_t *data, size_t len)
+static inline bool aes_ctr_crypt(const uint8_t *key, const uint8_t *nonce8,
+                                 uint8_t *data, size_t len)
 {
-  uint8_t iv[16] = {0}; memcpy(iv, nonce8, NONCE_LEN);
-  size_t nc_off = 0; uint8_t stream_block[16] = {0};
-  mbedtls_aes_context aes; mbedtls_aes_init(&aes);
-  if (mbedtls_aes_setkey_enc(&aes, key, 128) != 0) { mbedtls_aes_free(&aes); return false; }
-  int rc = mbedtls_aes_crypt_ctr(&aes, len, &nc_off, iv, stream_block, data, data);
-  mbedtls_aes_free(&aes);
-  return rc == 0;
+  return aesCtrCrypt(key, nonce8, data, len);
 }
 
 static void setOledPower(bool on)
@@ -567,7 +552,7 @@ static void processPayload(const String &payload)
   g_lastStatus = statusStr.length() ? statusStr : "-";
   g_lastLoRaMs = millis();
   g_lastRssi = LoRa.packetRssi();
-  g_lastSnr = LoRa.packetSnr();
+  g_lastSnr = LoRa.packetSnr(); // TODO: optional veröffentlichen
   addMeasurement(g_lastValue, g_lastStatus);
 
   publishReadings();
